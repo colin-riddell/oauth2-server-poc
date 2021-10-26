@@ -1,21 +1,18 @@
 package com.fanduel.oauthpoc;
 
 
-import com.auth0.jwt.JWT;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import com.nimbusds.jwt.JWTParser;
-import com.nimbusds.jwt.proc.JWTProcessor;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Role;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.OAuth2AuthorizationServerConfiguration;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.core.userdetails.User;
@@ -24,10 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.OidcScopes;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+
 import org.springframework.security.oauth2.server.authorization.client.InMemoryRegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
@@ -45,6 +40,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
 @Configuration
+@EnableWebSecurity(debug = true)
 public class OAuth2AuthorizationServerSecurityConfiguration {
 
     @Bean
@@ -60,7 +56,6 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         // @formatter:off
         http
                 .authorizeRequests()
-                .antMatchers("/login", "/oauth2/authorize").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic().disable()
@@ -81,6 +76,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .redirectUri("http://127.0.0.1:8080/login/oauth2/code/login-client")
                 .redirectUri("http://127.0.0.1:8080/authorized")
+                .scope(OidcScopes.OPENID)
                 .scope("read")
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
                 .build();
@@ -109,6 +105,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     @Bean
     public JwtDecoder jwtDecoder(KeyPair keyPair) {
 //        return NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();
+        // use custom decoder for POC until we get pub key
         return new CustomJwtDecoder();
     }
 
@@ -122,10 +119,10 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     }
 
 
-//    @Bean
-//    public ProviderSettings providerSettings() {
-//        return ProviderSettings.builder().issuer("http://localhost:9000").build();
-//    }
+    @Bean
+    public ProviderSettings providerSettings() {
+        return ProviderSettings.builder().issuer("http://auth-server:9000").build();
+    }
 
     @Bean
     public UserDetailsService userDetailsService() {

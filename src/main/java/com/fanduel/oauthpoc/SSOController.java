@@ -14,8 +14,8 @@ public class SSOController {
             @RequestParam("state") String state,
             @RequestParam("redirect_uri") String redirectUri,
             @RequestParam("nonce") String nonce) {
-        return String.format("redirect:/oauth2/authorize?response_type=%s&client_id=%s&scope=%s&state=%s&redirect_uri=%s&nonce=%s",
-                responseType, clientId, scope, state, redirectUri, nonce
+        return String.format("redirect:/oauth2/authorize?response_type=%s&client_id=%s&scope=%s&state=%s&nonce=%s&redirect_uri=%s",
+                responseType, clientId, scope, state, nonce, redirectUri
         );
     }
 }
