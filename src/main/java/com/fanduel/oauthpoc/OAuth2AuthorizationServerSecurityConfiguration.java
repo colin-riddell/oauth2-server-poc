@@ -53,14 +53,11 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
     @Bean
     @Order(2)
     public SecurityFilterChain standardSecurityFilterChain(HttpSecurity http) throws Exception {
-        // @formatter:off
         http
-                .authorizeRequests()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic().disable()
+                .authorizeRequests((authorize) -> authorize
+                        .anyRequest().authenticated()
+                )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
-        // @formatter:on
 
         return http.build();
     }
@@ -70,6 +67,7 @@ public class OAuth2AuthorizationServerSecurityConfiguration {
         // @formatter:off
         RegisteredClient loginClient = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("clientid")
+                .clientName("test")
                 .clientSecret("client-secret")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
